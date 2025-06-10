@@ -32,43 +32,59 @@ export default function TicketForm({ onCreate }: { onCreate: () => void }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-lg mb-8 border border-gray-200">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Abrir Novo Chamado</h2>
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white border border-gray-200 rounded-lg shadow-md p-6 space-y-6 max-w-md mx-auto"
+      noValidate
+    >
+      <h2 className="text-2xl font-extrabold text-indigo-900 text-center">
+        Abrir Novo Chamado
+      </h2>
 
       {error && (
         <div
-          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md select-text"
           role="alert"
         >
-          <strong className="font-bold">Ops!</strong>
-          <span className="block sm:inline ml-2">{error}</span>
+          <strong className="font-semibold">Ops!</strong>{' '}
+          <span>{error}</span>
         </div>
       )}
 
-      <div className="mb-4">
-        <label htmlFor="description" className="block text-gray-700 text-sm font-semibold mb-2">
+      <div>
+        <label
+          htmlFor="description"
+          className="block text-gray-800 font-semibold mb-2"
+        >
           Descrição do Chamado:
         </label>
         <textarea
           id="description"
           placeholder="Descreva seu problema ou solicitação em detalhes..."
           value={description}
-          onChange={e => setDescription(e.target.value)}
-          className="shadow-sm appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 resize-y"
-          rows={4}
+          onChange={(e) => setDescription(e.target.value)}
+          className="w-full rounded-md border border-gray-300 shadow-sm p-3 text-gray-800 resize-y
+                     focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                     transition duration-200"
+          rows={5}
           required
         />
       </div>
 
-      <div className="mb-6">
-        <label htmlFor="priority" className="block text-gray-700 text-sm font-semibold mb-2">
+      <div>
+        <label
+          htmlFor="priority"
+          className="block text-gray-800 font-semibold mb-2"
+        >
           Prioridade:
         </label>
         <select
           id="priority"
           value={priority}
-          onChange={e => setPriority(e.target.value as 'baixa' | 'media' | 'alta')}
-          className="block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+          onChange={(e) => setPriority(e.target.value as 'baixa' | 'media' | 'alta')}
+          className="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 text-gray-800
+                     focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                     transition duration-200"
         >
           <option value="baixa">Baixa</option>
           <option value="media">Média</option>
@@ -78,10 +94,13 @@ export default function TicketForm({ onCreate }: { onCreate: () => void }) {
 
       <button
         type="submit"
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
+        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg
+                   shadow-md focus:outline-none focus:ring-4 focus:ring-indigo-400 focus:ring-opacity-50
+                   transition transform hover:scale-105"
       >
         Abrir Chamado
       </button>
     </form>
   );
 }
+

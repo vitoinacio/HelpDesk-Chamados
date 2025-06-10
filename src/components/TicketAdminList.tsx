@@ -1,3 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useMemo } from 'react';
+import Modal from './Modal';
+import StatusIndicator from './StatusIndicator';
+import PriorityIndicator from './PriorityIndicator';
+
 export interface TicketAdmin {
   id: number;
   description: string;
@@ -13,108 +19,147 @@ interface Props {
 }
 
 export default function TicketAdminList({ tickets, onStatusChange }: Props) {
-  const getPriorityClasses = (priority: string) => {
-    switch (priority.toLowerCase()) {
-      case 'baixa':
-        return 'bg-green-100 text-green-800';
-      case 'media':
-        return 'bg-yellow-100 text-yellow-800'; 
-      case 'alta':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  const [search, setSearch] = useState('');
+  const [filterStatus, setFilterStatus] = useState<
+    'all' | 'pendente' | 'resolvido'
+  >('all');
+  const [filterPriority, setFilterPriority] = useState<
+    'all' | 'baixa' | 'media' | 'alta'
+  >('all');
+  const [modalTicket, setModalTicket] = useState<TicketAdmin | null>(null);
 
-  const getStatusClasses = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'pendente':
-        return 'bg-orange-100 text-orange-800';
-      case 'resolvido':
-        return 'bg-blue-100 text-blue-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  const filteredTickets = useMemo(() => {
+    const term = search.toLowerCase();
 
-  if (tickets.length === 0) {
-    return (
-      <div className="bg-white p-6 rounded-lg shadow-md text-center text-gray-600 border border-gray-200">
-        <p className="text-xl font-semibold mb-2">Nenhum chamado disponível no momento.</p>
-        <p className="text-gray-500">Volte mais tarde ou aguarde novos chamados para serem exibidos aqui.</p>
-      </div>
-    );
-  }
+    return tickets.filter((ticket) => {
+      const matchesSearch =
+        ticket.description.toLowerCase().includes(term) ||
+        ticket.email.toLowerCase().includes(term) ||
+        ticket.id.toString().includes(term);
+
+      const matchesStatus =
+        filterStatus === 'all' || ticket.status === filterStatus;
+
+      const matchesPriority =
+        filterPriority === 'all' ||
+        ticket.priority.toLowerCase() === filterPriority;
+
+      return matchesSearch && matchesStatus && matchesPriority;
+    });
+  }, [tickets, search, filterStatus, filterPriority]);
 
   return (
-    <div className="overflow-x-auto bg-white p-6 rounded-lg shadow-xl border border-gray-200">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Gerenciamento de Chamados</h2>
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg">
-              Descrição
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Prioridade
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Status
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Criado por
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Criado em
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-lg">
-              Ações
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {tickets.map(t => (
-            <tr key={t.id} className="hover:bg-gray-50 transition duration-150 ease-in-out">
-              <td className="px-6 py-4 whitespace-normal text-sm font-medium text-gray-900">
-                {t.description}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getPriorityClasses(t.priority)}`}>
-                  {t.priority}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClasses(t.status)}`}>
-                  {t.status}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {t.email}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {new Date(t.created_at).toLocaleString()}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                {t.status.toLowerCase() === 'pendente' ? (
-                  <button
-                    onClick={() => onStatusChange(t.id, 'resolvido')}
-                    className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-200"
-                  >
-                    Marcar como Resolvido
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => onStatusChange(t.id, 'pendente')}
-                    className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition duration-200"
-                  >
-                    Marcar como Pendente
-                  </button>
-                )}
-              </td>
-            </tr>
+    <section className="min-h-screen bg-gray-50 p-6 sm:p-10">
+      <header className="max-w-7xl mx-auto mb-10">
+        <h1 className="text-4xl font-extrabold tracking-tight mb-6 text-center sm:text-left text-gray-900">
+          Gerenciamento de Chamados
+        </h1>
+
+        <form
+          onSubmit={(e) => e.preventDefault()}
+          className="flex flex-wrap gap-4 max-w-full mx-auto sm:mx-0 items-center justify-center sm:justify-start"
+          role="search"
+          aria-label="Busca de chamados"
+        >
+          <input
+            type="search"
+            placeholder="Buscar por descrição, email ou ID"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-grow px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 transition text-gray-900"
+            aria-label="Campo de busca"
+          />
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value as any)}
+            className="w-full sm:w-48 px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 transition text-gray-900"
+            aria-label="Filtro por status"
+          >
+            <option value="all">Todos os Status</option>
+            <option value="pendente">Pendente</option>
+            <option value="resolvido">Resolvido</option>
+          </select>
+          <select
+            value={filterPriority}
+            onChange={(e) => setFilterPriority(e.target.value as any)}
+            className="w-full sm:w-48 px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 transition text-gray-900"
+            aria-label="Filtro por prioridade"
+          >
+            <option value="all">Todas as Prioridades</option>
+            <option value="baixa">Baixa</option>
+            <option value="media">Média</option>
+            <option value="alta">Alta</option>
+          </select>
+        </form>
+      </header>
+
+      {filteredTickets.length === 0 ? (
+        <p className="text-center text-gray-500 text-lg max-w-3xl mx-auto">
+          Nenhum chamado corresponde aos filtros aplicados.
+        </p>
+      ) : (
+        <main className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredTickets.map((ticket) => (
+            <article
+              key={ticket.id}
+              className="bg-white rounded-2xl shadow-lg p-6 flex flex-col justify-between border border-gray-200 hover:shadow-2xl transition-transform transform hover:-translate-y-1 focus-within:shadow-2xl focus-within:-translate-y-1 cursor-pointer"
+              tabIndex={0}
+              aria-labelledby={`ticket-title-${ticket.id}`}
+              onClick={() => setModalTicket(ticket)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setModalTicket(ticket);
+                }
+              }}
+            >
+              <header>
+                <h2
+                  id={`ticket-title-${ticket.id}`}
+                  className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 whitespace-pre-line"
+                >
+                  {ticket.description.length > 120
+                    ? ticket.description.slice(0, 120) + '...'
+                    : ticket.description}
+                </h2>
+              </header>
+
+              <div className="flex justify-between items-center mt-6 mb-6 text-sm">
+                <div className="flex gap-4">
+                  <div>
+                    <h3 className="font-semibold text-gray-800 mb-1">Status</h3>
+                    <StatusIndicator status={ticket.status} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-800 mb-1">
+                      Prioridade
+                    </h3>
+                    <PriorityIndicator priority={ticket.priority} />
+                  </div>
+                </div>
+                <span className="text-gray-500">ID: #{ticket.id}</span>
+              </div>
+
+              <footer className="text-sm text-gray-600 border-t border-gray-200 pt-4">
+                <p>
+                  <strong>Criado por:</strong> {ticket.email}
+                </p>
+                <p>
+                  <strong>Criado em:</strong>{' '}
+                  {new Date(ticket.created_at).toLocaleString()}
+                </p>
+              </footer>
+            </article>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </main>
+      )}
+
+      <Modal
+        isOpen={modalTicket !== null}
+        onClose={() => setModalTicket(null)}
+        ticket={modalTicket}
+        onStatusChange={onStatusChange}
+      />
+    </section>
   );
 }

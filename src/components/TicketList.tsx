@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 export interface Ticket {
   id: number;
   description: string;
@@ -11,6 +13,8 @@ interface Props {
 }
 
 export default function TicketList({ tickets }: Props) {
+  const [modalTicket, setModalTicket] = useState<Ticket | null>(null);
+
   const getPriorityClasses = (priority: string) => {
     switch (priority.toLowerCase()) {
       case 'baixa':
@@ -35,9 +39,14 @@ export default function TicketList({ tickets }: Props) {
     }
   };
 
+  function truncate(text: string, maxLength: number) {
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength) + '...';
+  }
+
   if (tickets.length === 0) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow-md text-center text-gray-600 border border-gray-200">
+      <div className="bg-white p-6 rounded-lg shadow-md text-center text-gray-600 border border-gray-200 max-w-xl mx-auto">
         <p className="text-xl font-semibold mb-2">Nenhum chamado seu foi encontrado.</p>
         <p className="text-gray-500">Abra um novo chamado para vê-lo aqui.</p>
       </div>
@@ -45,48 +54,98 @@ export default function TicketList({ tickets }: Props) {
   }
 
   return (
-    <div className="overflow-x-auto bg-white p-6 rounded-lg shadow-xl border border-gray-200">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Meus Chamados</h2>
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg">
-              Descrição
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Prioridade
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Status
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-lg">
-              Criado em
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {tickets.map(t => (
-            <tr key={t.id} className="hover:bg-gray-50 transition duration-150 ease-in-out">
-              <td className="px-6 py-4 whitespace-normal text-sm font-medium text-gray-900">
-                {t.description}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getPriorityClasses(t.priority)}`}>
-                  {t.priority}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClasses(t.status)}`}>
-                  {t.status}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {new Date(t.created_at).toLocaleString()}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <div className="max-w-6xl mx-auto grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        {tickets.map((ticket) => (
+          <div
+            key={ticket.id}
+            className="bg-white border border-gray-200 rounded-lg shadow hover:shadow-lg transition-shadow duration-300 flex flex-col p-6 cursor-default"
+          >
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Chamado #{ticket.id}</h3>
+
+            <p
+              className="text-gray-700 mb-4 cursor-pointer select-text line-clamp-3"
+              title="Clique para ver descrição completa"
+              onClick={() => setModalTicket(ticket)}
+            >
+              {truncate(ticket.description, 100)}
+            </p>
+
+            <div className="flex flex-wrap gap-2 mb-4">
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-semibold select-none ${getPriorityClasses(
+                  ticket.priority,
+                )}`}
+              >
+                Prioridade: {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)}
+              </span>
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-semibold select-none ${getStatusClasses(
+                  ticket.status,
+                )}`}
+              >
+                Status: {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
+              </span>
+            </div>
+
+            <time className="mt-auto text-sm text-gray-500 select-text" dateTime={ticket.created_at}>
+              Criado em: {new Date(ticket.created_at).toLocaleString()}
+            </time>
+          </div>
+        ))}
+      </div>
+
+      {/* Modal completo */}
+      {modalTicket && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+          onClick={() => setModalTicket(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="bg-white rounded-lg max-w-xl w-full p-6 mx-4 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold mb-4">Detalhes do Chamado #{modalTicket.id}</h3>
+            
+            <div className="mb-4">
+              <h4 className="font-semibold text-gray-700 mb-1">Descrição Completa</h4>
+              <p className="text-gray-800 whitespace-pre-wrap">{modalTicket.description}</p>
+            </div>
+
+            <div className="flex flex-wrap gap-4 mb-6">
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-semibold select-none ${getPriorityClasses(
+                  modalTicket.priority,
+                )}`}
+              >
+                Prioridade: {modalTicket.priority.charAt(0).toUpperCase() + modalTicket.priority.slice(1)}
+              </span>
+
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-semibold select-none ${getStatusClasses(
+                  modalTicket.status,
+                )}`}
+              >
+                Status: {modalTicket.status.charAt(0).toUpperCase() + modalTicket.status.slice(1)}
+              </span>
+
+              <time className="text-sm text-gray-500 select-text" dateTime={modalTicket.created_at}>
+                Criado em: {new Date(modalTicket.created_at).toLocaleString()}
+              </time>
+            </div>
+
+            <button
+              onClick={() => setModalTicket(null)}
+              className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded transition"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
+
