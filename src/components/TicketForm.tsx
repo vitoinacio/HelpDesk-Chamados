@@ -26,8 +26,7 @@ export default function TicketForm({ onCreate }: { onCreate: () => void }) {
       setPriority('baixa');
       setError('');
       onCreate();
-    } catch (err) {
-      console.error('Error creating ticket:', err);
+    } catch {
       setError('Não foi possível abrir o chamado. Tente novamente.');
     }
   }

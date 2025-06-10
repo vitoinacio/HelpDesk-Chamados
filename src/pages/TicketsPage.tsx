@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 export default function TicketsPage() {
-  const { token, setToken, isAdmin } = useAuth();
+  const { token, setToken, isAdmin, setIsAdmin } = useAuth();
   const navigate = useNavigate();
 
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -23,13 +23,17 @@ export default function TicketsPage() {
       navigate('/login');
       return;
     }
+    const storedIsAdmin = localStorage.getItem('is_admin') === 'true';
+    setIsAdmin(storedIsAdmin);
+
     fetchTickets();
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [token, isAdmin]);
 
   async function fetchTickets() {
     try {
-      const url = isAdmin ? `${API_URL}/tickets` : `${API_URL}/tickets`;
+      const url = `${API_URL}/tickets`;
       const res = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -38,7 +42,12 @@ export default function TicketsPage() {
       } else {
         setTickets(res.data);
       }
-    } catch {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error(
+        'Erro ao carregar chamados:',
+        err.response?.data || err.message,
+      );
       setError('Erro ao carregar chamados');
       setToken('');
       navigate('/login');
@@ -56,14 +65,21 @@ export default function TicketsPage() {
         { headers: { Authorization: `Bearer ${token}` } },
       );
       fetchTickets();
-    } catch {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error(
+        'Erro ao atualizar status:',
+        err.response?.data || err.message,
+      );
       setError('Erro ao atualizar status');
     }
   }
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('is_admin');
     setToken('');
+    setIsAdmin(false);
     navigate('/login');
   };
 

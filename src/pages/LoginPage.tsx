@@ -27,10 +27,10 @@ export default function LoginPage() {
 
       const payload = JSON.parse(atob(res.data.token.split('.')[1]));
       setIsAdmin(payload.is_admin);
+      localStorage.setItem('is_admin', payload.is_admin)
 
       navigate('/tickets');
-    } catch (err) {
-      console.error("Login error:", err);
+    } catch {
       setError('Credenciais inválidas. Verifique seu e-mail e senha.');
     }
   }

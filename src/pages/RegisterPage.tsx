@@ -29,7 +29,6 @@ export default function RegisterPage() {
       setTimeout(() => navigate('/login'), 2000);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      console.error("Registration error:", e);
       setError(e.response?.data?.message || 'Erro ao criar conta. Tente novamente.');
     }
   }
